@@ -56,17 +56,22 @@ export function activate(context: vscode.ExtensionContext) {
 			const wdlToolsLocation = vscode.workspace.getConfiguration('WDL.formatter.wdlTools').get('location');
 
 			try {
-				let out = child_process.execSync('java -jar ' + wdlToolsLocation + ' format --nofollow-imports ' + document.uri.path);
+				let out = child_process.execSync('java -jar ' + wdlToolsLocation + ' format --nofollow-imports ' + document.uri.path).toString();
 
-				// let commandRegExp = new RegExp('.*command.*<<<\W+([\w\W]+)>>>');
-				// let matches = commandRegExp.exec(out.toString());
-				// console.log("supa watch22s");
+				let commandRegExp = new RegExp('([ \t]*)command +<{3}([^]+)>{3}', 'mg');
+				let bashCommand = commandRegExp.exec(out);
 
-				// while (matches !== null) {
-				// 	console.log(matches[1]);
-				// }
+				if (bashCommand) {
+					let outBash = child_process.execSync('shfmt', { input: bashCommand[2] }).toString();
+					outBash = '        ' + outBash;
+					outBash = outBash.replace(/\t/g, '    ');
+					outBash = outBash.replace(/\n/g, '\n        ');
+					outBash = outBash.replace(/\$/g, '$$$');
 
-				return [vscode.TextEdit.replace(allTextRange, out.toString())];
+					out = out.replace(/([ \t]*)command +<{3}([^]+)>{3}/mg, '    command <<<\n' + outBash.toString() + '\n    >>>');
+				}
+
+				return [vscode.TextEdit.replace(allTextRange, out)];
 			} catch (error) {
 				let message = getErrorMessage(error);
 
