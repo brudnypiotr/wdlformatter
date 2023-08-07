@@ -46,7 +46,7 @@
           "type": "string",
           "pattern": ".*\\.jar$",
           "patternErrorMessage": "You must specify executable jar file.",
-          "default": "/mnt/c/Users/brudn/IdeaProjects/wdlTools/target/wdlTools.jar",
+          "default": "wdlTools.jar",
           "description": "Specifies location of wdlTools.jar executable file."
         }
       }
