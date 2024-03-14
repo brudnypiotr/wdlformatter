@@ -1,21 +1,34 @@
-'use strict';
-
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as child_process from "child_process";
-import { stringify } from 'querystring';
+import * as child_process from 'child_process';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+const WDL_TOOLS_CONFIG = 'WDL.formatter.wdlTools';
+const WDL_LANGUAGE_ID = 'wdl';
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log('WDL formatting activated');
 
 	vscode.commands.registerCommand('WDL.formatter.upgrade', () => {
 		const { activeTextEditor } = vscode.window;
 
-		if (activeTextEditor && activeTextEditor.document.languageId === 'wdl') {
+		if (activeTextEditor && activeTextEditor.document.languageId === WDL_LANGUAGE_ID) {
 			const { document } = activeTextEditor;
+
+			const wholeDocumentRange = getWholeDocumentRange(document);
+			const wdlToolsJarLocation = vscode.workspace.getConfiguration(WDL_TOOLS_CONFIG).get('location');
+
+			try {
+				const out = child_process.execSync(`java -jar ${wdlToolsJarLocation} upgrade --nofollow-imports ${document.uri.path}`);
+				const edit = new vscode.WorkspaceEdit();
+
+				edit.replace(document.uri, wholeDocumentRange, out.toString());
+
+				return vscode.workspace.applyEdit(edit);
+			} catch (error) {
+				reportErrorNoUpgrade({ message: getErrorMessage(error) });
+			}
+		}
+
+		function getWholeDocumentRange(document: vscode.TextDocument) {
 			const firstLine = document.lineAt(0);
 			const lastLine = document.lineAt(document.lineCount - 1);
 
@@ -26,18 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
 				lastLine.range.end.character
 			);
 
-			const wdlToolsLocation = vscode.workspace.getConfiguration('WDL.formatter.wdlTools').get('location');
-
-			try {
-				let out = child_process.execSync('java -jar ' + wdlToolsLocation + ' upgrade --nofollow-imports ' + document.uri.path);
-
-				const edit = new vscode.WorkspaceEdit();
-				edit.replace(document.uri, allTextRange, out.toString());
-				return vscode.workspace.applyEdit(edit);
-
-			} catch (error) {
-				reportErrorNoUpgrade({ message: getErrorMessage(error) });
-			}
+			return allTextRange;
 		}
 	});
 
@@ -56,10 +58,10 @@ export function activate(context: vscode.ExtensionContext) {
 			const wdlToolsLocation = vscode.workspace.getConfiguration('WDL.formatter.wdlTools').get('location');
 
 			try {
-				let out = child_process.execSync('java -jar ' + wdlToolsLocation + ' format --nofollow-imports ' + document.uri.path).toString();
+				let out = child_process.execSync(`java -jar ${wdlToolsLocation} format --nofollow-imports ${document.uri.path}`).toString();
 
-				let commandRegExp = new RegExp('([ \t]*)command +<{3}([^]+)>{3}', 'mg');
-				let bashCommand = commandRegExp.exec(out);
+				const commandRegExp = new RegExp('([ \t]*)command +<{3}([^]+)>{3}', 'mg');
+				const bashCommand = commandRegExp.exec(out);
 
 				if (bashCommand) {
 					let outBash = child_process.execSync('shfmt', { input: bashCommand[2] }).toString();
@@ -73,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				return [vscode.TextEdit.replace(allTextRange, out)];
 			} catch (error) {
-				let message = getErrorMessage(error);
+				const message = getErrorMessage(error);
 
 				if (message.includes('WDL version Draft_2 is not supported')) {
 					reportError({ message }).then(result => {
@@ -89,7 +91,6 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 	});
-
 }
 
 const reportError = ({ message }: { message: string }) => {
