@@ -9,39 +9,55 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('WDL formatting activated');
 
 	vscode.commands.registerCommand('WDL.formatter.fix.ruby', () => {
-		const { activeTextEditor } = vscode.window;
-
-		if (activeTextEditor && activeTextEditor.document.languageId === WDL_LANGUAGE_ID) {
-			const { document } = activeTextEditor;
-
-			const fixerRbLocation = vscode.workspace.getConfiguration(FIXER_RB_CONFIG).get('location');
-
-			child_process.execSync(`${fixerRbLocation} ${document.uri.path} > ${document.uri.path}_`);
-			child_process.execSync(`mv ${document.uri.path}_ ${document.uri.path}`);
+		const activeTextEditor = vscode.window.activeTextEditor;
+		if (!activeTextEditor || activeTextEditor.document.languageId !== WDL_LANGUAGE_ID) {
+			return;
 		}
+
+		const document = activeTextEditor.document;
+		const fixerRbLocation = vscode.workspace.getConfiguration(FIXER_RB_CONFIG).get('location');
+
+		child_process.execSync(`${fixerRbLocation} "${document.uri.path}" > "${document.uri.path}_"`);
+		child_process.execSync(`mv "${document.uri.path}_" "${document.uri.path}"`);
+	});
+
+	vscode.commands.registerCommand('WDL.formatter.check', () => {
+		const activeTextEditor = vscode.window.activeTextEditor;
+		if (!activeTextEditor || activeTextEditor.document.languageId !== WDL_LANGUAGE_ID) {
+			return;
+		}
+
+		const document = activeTextEditor.document;
+		const wdlToolsJarLocation = vscode.workspace.getConfiguration(WDL_TOOLS_CONFIG).get('location');
+
+		const out = child_process.execSync(`java -jar ${wdlToolsJarLocation} check "${document.uri.path}"`);
+
+		const outputChannel = vscode.window.createOutputChannel("wdlFormatter");
+		outputChannel.show();
+		outputChannel.appendLine(out.toString());
 	});
 
 	vscode.commands.registerCommand('WDL.formatter.upgrade', () => {
-		const { activeTextEditor } = vscode.window;
-
-		if (activeTextEditor && activeTextEditor.document.languageId === WDL_LANGUAGE_ID) {
-			const { document } = activeTextEditor;
-
-			const wholeDocumentRange = getWholeDocumentRange(document);
-			const wdlToolsJarLocation = vscode.workspace.getConfiguration(WDL_TOOLS_CONFIG).get('location');
-
-			try {
-				const out = child_process.execSync(`java -jar ${wdlToolsJarLocation} upgrade --nofollow-imports ${document.uri.path}`);
-				const edit = new vscode.WorkspaceEdit();
-
-				edit.replace(document.uri, wholeDocumentRange, out.toString());
-
-				return vscode.workspace.applyEdit(edit);
-			} catch (error) {
-				reportErrorNoUpgrade({ message: getErrorMessage(error) });
-			}
+		const activeTextEditor = vscode.window.activeTextEditor;
+		if (!activeTextEditor || activeTextEditor.document.languageId !== WDL_LANGUAGE_ID) {
+			return;
 		}
 
+		const document = activeTextEditor.document;
+		const wholeDocumentRange = getWholeDocumentRange(document);
+		const wdlToolsJarLocation = vscode.workspace.getConfiguration(WDL_TOOLS_CONFIG).get('location');
+
+		try {
+			const out = child_process.execSync(`java -jar ${wdlToolsJarLocation} upgrade --nofollow-imports "${document.uri.path}"`);
+			const edit = new vscode.WorkspaceEdit();
+
+			edit.replace(document.uri, wholeDocumentRange, out.toString());
+
+			return vscode.workspace.applyEdit(edit);
+		} catch (error) {
+			reportErrorNoUpgrade({ message: getErrorMessage(error), error });
+		}
+	
 		function getWholeDocumentRange(document: vscode.TextDocument) {
 			const firstLine = document.lineAt(0);
 			const lastLine = document.lineAt(document.lineCount - 1);
@@ -72,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const wdlToolsLocation = vscode.workspace.getConfiguration('WDL.formatter.wdlTools').get('location');
 
 			try {
-				let out = child_process.execSync(`java -jar ${wdlToolsLocation} format --nofollow-imports ${document.uri.path}`).toString();
+				let out = child_process.execSync(`java -jar ${wdlToolsLocation} format --nofollow-imports "${document.uri.path}"`).toString();
 
 				const commandRegExp = new RegExp('([ \t]*)command +<{3}([^]+)>{3}', 'mg');
 				const bashCommand = commandRegExp.exec(out);
@@ -98,7 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
 						}
 					});
 				} else {
-					reportErrorNoUpgrade({ message });
+					reportErrorNoUpgrade({ message, error });
 				}
 
 				return [];
@@ -111,8 +127,15 @@ const reportError = ({ message }: { message: string }) => {
 	return vscode.window.showErrorMessage(message, 'Perform file upgrade');
 };
 
-const reportErrorNoUpgrade = ({ message }: { message: string }) => {
+const reportErrorNoUpgrade = ({ message, error }: { message: string, error: unknown }) => {
 	vscode.window.showErrorMessage(message);
+
+	const outputChannel = vscode.window.createOutputChannel("wdlFormatter");
+	outputChannel.show();
+
+	if (error instanceof Error) {
+		outputChannel.appendLine(error.message);
+	}
 };
 
 function getErrorMessage(error: unknown) {
