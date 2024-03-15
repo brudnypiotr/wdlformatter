@@ -2,13 +2,13 @@ import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 
 const WDL_TOOLS_CONFIG = 'WDL.formatter.wdlTools';
-const FIXER_RB_CONFIG = 'WDL.formatter.fixerRb';
+const FIXER_RB_CONFIG = 'WDL.formatter.fix.rubyRb';
 const WDL_LANGUAGE_ID = 'wdl';
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('WDL formatting activated');
 
-	vscode.commands.registerCommand('WDL.formatter.fixer', () => {
+	vscode.commands.registerCommand('WDL.formatter.fix.ruby', () => {
 		const { activeTextEditor } = vscode.window;
 
 		if (activeTextEditor && activeTextEditor.document.languageId === WDL_LANGUAGE_ID) {
@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	vscode.commands.registerCommand('WDL.formatter.upgradedupa', () => {
+	vscode.commands.registerCommand('WDL.formatter.upgrade', () => {
 		const { activeTextEditor } = vscode.window;
 
 		if (activeTextEditor && activeTextEditor.document.languageId === WDL_LANGUAGE_ID) {

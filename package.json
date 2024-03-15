@@ -1,9 +1,10 @@
 {
   "name": "wdlformatter",
-  "displayName": "wdlFormatter",
-  "description": "",
+  "displayName": "WDL Formatter",
+  "description": "WDL formatter extension utilizes the DNA Nexus wdlTools.",
   "publisher": "brudnypiotr",
-  "version": "0.0.3",
+  "version": "0.0.4",
+  "repository": "https://github.com/brudnypiotr/wdlformatter",
   "engines": {
     "vscode": "^1.73.0"
   },
@@ -30,12 +31,19 @@
     ],
     "commands": [
       {
-        "command": "WDL.formatter.upgradedupa",
-        "title": "Upgrade WDL file from Draft-2 to 1.0 version"
+        "command": "WDL.formatter.upgrade",
+        "title": "wdlFormatter: Upgrade WDL file from Draft-2 to 1.0 version",
+        "shortTitle": "wdlFormatter: Upgrade"
       },
       {
-        "command": "WDL.formatter.fixer",
-        "title": "Run ruby fixer script for *.wdl Draft-2 file"
+        "command": "WDL.formatter.fix.ruby",
+        "title": "wdlFormatter: Fix WDL Draft-2 file using Ruby fixer, making it compatible with wdlTools",
+        "shortTitle": "wdlFormatter: Fix"
+      },
+      {
+        "command": "WDL.formatter.check",
+        "title": "wdlFormatter: type-check a WDL file",
+        "shortTitle": "wdlFormatter: Check"
       }
     ],
     "configuration": {
@@ -53,7 +61,7 @@
           "default": "wdlTools.jar",
           "description": "Specifies location of wdlTools.jar executable file."
         },
-        "WDL.formatter.fixerRb.location": {
+        "WDL.formatter.fix.rubyRb.location": {
           "type": "string",
           "pattern": ".*\\.rb$",
           "patternErrorMessage": "You must specify fixer.rb file.",
@@ -81,9 +89,7 @@
     "eslint": "^8.26.0",
     "glob": "^8.0.3",
     "mocha": "^10.1.0",
-    "@vscode/test-electron": "^2.2.0"
-  },
-  "dependencies": {
+    "@vscode/test-electron": "^2.2.0",
     "typescript": "^4.8.4"
   }
 }
