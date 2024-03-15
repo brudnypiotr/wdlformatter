@@ -3,7 +3,7 @@
   "displayName": "wdlFormatter",
   "description": "",
   "publisher": "brudnypiotr",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.73.0"
   },
@@ -30,8 +30,12 @@
     ],
     "commands": [
       {
-        "command": "WDL.formatter.upgrade",
+        "command": "WDL.formatter.upgradedupa",
         "title": "Upgrade WDL file from Draft-2 to 1.0 version"
+      },
+      {
+        "command": "WDL.formatter.fixer",
+        "title": "Run ruby fixer script for *.wdl Draft-2 file"
       }
     ],
     "configuration": {
@@ -48,6 +52,13 @@
           "patternErrorMessage": "You must specify executable jar file.",
           "default": "wdlTools.jar",
           "description": "Specifies location of wdlTools.jar executable file."
+        },
+        "WDL.formatter.fixerRb.location": {
+          "type": "string",
+          "pattern": ".*\\.rb$",
+          "patternErrorMessage": "You must specify fixer.rb file.",
+          "default": "fixer.rb",
+          "description": "Specifies location of fixer.rb file."
         }
       }
     }
@@ -70,7 +81,9 @@
     "eslint": "^8.26.0",
     "glob": "^8.0.3",
     "mocha": "^10.1.0",
-    "typescript": "^4.8.4",
     "@vscode/test-electron": "^2.2.0"
+  },
+  "dependencies": {
+    "typescript": "^4.8.4"
   }
 }
