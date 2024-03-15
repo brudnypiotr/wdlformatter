@@ -7,15 +7,15 @@ const WDL_LANGUAGE_ID = 'wdl';
 
 export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('WDL.formatter.fix.ruby', () => {
-        executeCommandForWdlFile(fixRubyCommand);
+        executeWdlCommand(fixRubyCommand);
     });
 
     vscode.commands.registerCommand('WDL.formatter.check', () => {
-        executeCommandForWdlFile(checkCommand);
+        executeWdlCommand(checkCommand);
     });
 
     vscode.commands.registerCommand('WDL.formatter.upgrade', () => {
-        executeCommandForWdlFile(upgradeCommand);
+        executeWdlCommand(upgradeCommand);
     });
 
     vscode.languages.registerDocumentFormattingEditProvider('wdl', {
@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 }
 
-async function executeCommandForWdlFile(command: (uri: vscode.Uri) => Promise<void>) {
+async function executeWdlCommand(command: (uri: vscode.Uri) => Promise<void>) {
     const activeEditor = vscode.window.activeTextEditor;
     if (!activeEditor || activeEditor.document.languageId !== WDL_LANGUAGE_ID) {
         return;
