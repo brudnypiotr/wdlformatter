@@ -80,7 +80,14 @@ async function formatWdlDocument(document: vscode.TextDocument): Promise<vscode.
         out = formatBashCommand(out);
         return [vscode.TextEdit.replace(getWholeDocumentRange(document.uri), out)];
     } catch (error) {
-        handleCommandError(error);
+        if (error instanceof Error && error.message.includes('WDL version Draft_2 is not supported')) {
+            const result = await vscode.window.showErrorMessage('WDL version Draft_2 is not supported. Do you want to upgrade to 1.0?', 'Yes', 'No');
+            if (result === 'Yes') {
+                await upgradeCommand(document.uri);
+            }
+        } else {
+            handleCommandError(error);
+        }
         return [];
     }
 }
