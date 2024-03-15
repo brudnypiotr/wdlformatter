@@ -23,16 +23,20 @@ export function activate(context: vscode.ExtensionContext) {
     });
 }
 
-function executeCommandForWdlFile(command: (uri: vscode.Uri) => void) {
+async function executeCommandForWdlFile(command: (uri: vscode.Uri) => Promise<void>) {
     const activeEditor = vscode.window.activeTextEditor;
     if (!activeEditor || activeEditor.document.languageId !== WDL_LANGUAGE_ID) {
         return;
     }
 
-    command(activeEditor.document.uri);
+    try {
+        await command(activeEditor.document.uri);
+    } catch (error) {
+        handleCommandError(error);
+    }
 }
 
-function fixRubyCommand(uri: vscode.Uri) {
+async function fixRubyCommand(uri: vscode.Uri) {
     const document = vscode.workspace.textDocuments.find(doc => doc.uri === uri);
     if (!document) {
         return;
@@ -40,45 +44,57 @@ function fixRubyCommand(uri: vscode.Uri) {
 
     const fixerRbLocation = vscode.workspace.getConfiguration(FIXER_RB_CONFIG).get('location');
     const outputPath = `${uri.fsPath}_`;
-    child_process.execSync(`${fixerRbLocation} "${uri.fsPath}" > "${outputPath}"`);
-    child_process.execSync(`mv "${outputPath}" "${uri.fsPath}"`);
+    await executeChildProcess(`${fixerRbLocation} "${uri.fsPath}" > "${outputPath}"`);
+    await executeChildProcess(`mv "${outputPath}" "${uri.fsPath}"`);
 }
 
-function checkCommand(uri: vscode.Uri) {
+async function checkCommand(uri: vscode.Uri) {
     const wdlToolsJarLocation = vscode.workspace.getConfiguration(WDL_TOOLS_CONFIG).get('location');
     const outputChannel = vscode.window.createOutputChannel("WDL Formatter");
     outputChannel.show();
 
     try {
-        const out = child_process.execSync(`java -jar ${wdlToolsJarLocation} check "${uri.fsPath}"`);
-        outputChannel.append(out.toString());
+        const out = await executeChildProcess(`java -jar ${wdlToolsJarLocation} check "${uri.fsPath}"`);
+        outputChannel.append(out);
     } catch (error) {
         handleCommandError(error);
     }
 }
 
-function upgradeCommand(uri: vscode.Uri) {
+async function upgradeCommand(uri: vscode.Uri) {
     const wdlToolsJarLocation = vscode.workspace.getConfiguration(WDL_TOOLS_CONFIG).get('location');
     try {
-        const out = child_process.execSync(`java -jar ${wdlToolsJarLocation} upgrade --nofollow-imports "${uri.fsPath}"`);
+        const out = await executeChildProcess(`java -jar ${wdlToolsJarLocation} upgrade --nofollow-imports "${uri.fsPath}"`);
         const edit = new vscode.WorkspaceEdit();
-        edit.replace(uri, getWholeDocumentRange(uri), out.toString());
+        edit.replace(uri, getWholeDocumentRange(uri), out);
         vscode.workspace.applyEdit(edit);
     } catch (error) {
         handleCommandError(error);
     }
 }
 
-function formatWdlDocument(document: vscode.TextDocument): vscode.TextEdit[] {
+async function formatWdlDocument(document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
     const wdlToolsLocation = vscode.workspace.getConfiguration('WDL.formatter.wdlTools').get('location');
     try {
-        let out = child_process.execSync(`java -jar ${wdlToolsLocation} format --nofollow-imports "${document.uri.fsPath}"`).toString();
+        let out = await executeChildProcess(`java -jar ${wdlToolsLocation} format --nofollow-imports "${document.uri.fsPath}"`);
         out = formatBashCommand(out);
         return [vscode.TextEdit.replace(getWholeDocumentRange(document.uri), out)];
     } catch (error) {
         handleCommandError(error);
         return [];
     }
+}
+
+function executeChildProcess(command: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        child_process.exec(command, (error, stdout, stderr) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(stdout.toString());
+            }
+        });
+    });
 }
 
 function formatBashCommand(output: string): string {
