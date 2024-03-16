@@ -47,8 +47,8 @@ This extension contributes the following settings:
 
 ### Format with Upgrade Fallback
 
-- **Windows:** Press <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>L</kbd>.
-- **MacOS:** Press <kbd>⇧</kbd> + <kbd>⌥</kbd> + <kbd>L</kbd>.
+- **Windows:** Press <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>L</kbd>
+- **MacOS:** Press <kbd>⇧</kbd> + <kbd>⌥</kbd> + <kbd>L</kbd>
 
 ### Upgrade Commands
 

@@ -9,6 +9,7 @@
     "Format",
     "Lint"
   ],
+  "icon": "images/wdlformatter128.png",
   "publisher": "brudnypiotr",
   "version": "0.0.4",
   "repository": "https://github.com/brudnypiotr/wdlformatter",
