@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	vscode.commands.registerCommand('WDL.formatter.check', () => {
-		executeWdlCommand(checkCommand);
+		executeWdlCommand(wdlToolsCheckCommand);
 	});
 
 	vscode.commands.registerCommand('WDL.formatter.womtoolcheck', () => {
@@ -55,13 +55,13 @@ async function fixRubyCommand(uri: vscode.Uri) {
 	await executeChildProcess(`mv "${outputPath}" "${uri.fsPath}"`);
 }
 
-async function checkCommand(uri: vscode.Uri) {
+async function wdlToolsCheckCommand(uri: vscode.Uri) {
 	const wdlToolsJarLocation = vscode.workspace.getConfiguration(WDL_TOOLS_CONFIG).get('location');
 	outputChannel.show();
 
 	try {
 		const out = await executeChildProcess(`java -jar ${wdlToolsJarLocation} check "${uri.fsPath}"`);
-		outputChannel.replace(out);
+		outputChannel.replace(out === '' ? '[wdlTools check] No issues detected!' : out);
 	} catch (error) {
 		handleCommandError(error);
 	}
@@ -73,7 +73,7 @@ async function womtoolCheckCommand(uri: vscode.Uri) {
 
 	try {
 		const out = await executeChildProcess(`java -jar ${womToolsJarLocation} validate "${uri.fsPath}"`);
-		outputChannel.replace(out);
+		outputChannel.replace(out === 'Success!\n' ? '[womtool validate] No issues detected!' : out);
 	} catch (error) {
 		handleCommandError(error);
 	}
