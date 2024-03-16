@@ -1,7 +1,14 @@
 {
   "name": "wdlformatter",
   "displayName": "WDL Formatter",
-  "description": "WDL formatter extension utilizes the DNA Nexus wdlTools.",
+  "description": "Format and lint WDL (Workflow Description Language) files using DNA Nexus wdlTools and womtool.",
+  "keywords": [
+    "WDL",
+    "Workflow Description Language",
+    "Formatter",
+    "Format",
+    "Lint"
+  ],
   "publisher": "brudnypiotr",
   "version": "0.0.4",
   "repository": "https://github.com/brudnypiotr/wdlformatter",
@@ -32,19 +39,23 @@
     "commands": [
       {
         "command": "WDL.formatter.upgrade",
-        "title": "wdlFormatter: Upgrade WDL file from Draft-2 to 1.0 version"
+        "title": "Upgrade Draft-2 to 1.0",
+        "category": "WDL Formatter"
       },
       {
         "command": "WDL.formatter.fix.ruby",
-        "title": "wdlFormatter: Fix WDL Draft-2 file using Ruby fixer, making it compatible with wdlTools"
+        "title": "Run Draft-2 Ruby fixer",
+        "category": "WDL Formatter"
       },
       {
         "command": "WDL.formatter.check",
-        "title": "wdlFormatter: type-check a WDL file with wdlTools"
+        "title": "Run wdlTools type-check",
+        "category": "WDL Formatter"
       },
       {
         "command": "WDL.formatter.womtoolcheck",
-        "title": "wdlFormatter: type-check a WDL file with womtool"
+        "title": "Run womtool type-check",
+        "category": "WDL Formatter"
       }
     ],
     "configuration": {
@@ -58,23 +69,23 @@
         "WDL.formatter.wdlTools.location": {
           "type": "string",
           "pattern": ".*\\.jar$",
-          "patternErrorMessage": "You must specify executable jar file.",
+          "patternErrorMessage": "You must specify the location of the wdlTools.jar executable file.",
           "default": "wdlTools.jar",
-          "description": "Specifies location of wdlTools.jar executable file."
+          "description": "Specifies the location of the wdlTools.jar executable file."
         },
         "WDL.formatter.womTools.location": {
           "type": "string",
           "pattern": ".*\\.jar$",
-          "patternErrorMessage": "You must specify executable jar file.",
+          "patternErrorMessage": "You must specify the location of the womtool.jar executable file.",
           "default": "womtool.jar",
-          "description": "Specifies location of womtools.jar executable file."
+          "description": "Specifies the location of the womtool.jar executable file."
         },
         "WDL.formatter.fix.rubyRb.location": {
           "type": "string",
           "pattern": ".*\\.rb$",
-          "patternErrorMessage": "You must specify fixer.rb file.",
+          "patternErrorMessage": "You must specify the location of the fixer.rb file.",
           "default": "fixer.rb",
-          "description": "Specifies location of fixer.rb file."
+          "description": "Specifies the location of the fixer.rb file."
         }
       }
     }
