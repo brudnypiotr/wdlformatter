@@ -61,7 +61,7 @@ async function checkCommand(uri: vscode.Uri) {
 	
     try {
 		const out = await executeChildProcess(`java -jar ${wdlToolsJarLocation} check "${uri.fsPath}"`);
-        outputChannel.append(out);
+        outputChannel.replace(out);
     } catch (error) {
         handleCommandError(error);
     }
@@ -73,7 +73,7 @@ async function womtoolCheckCommand(uri: vscode.Uri) {
 
     try {
         const out = await executeChildProcess(`java -jar ${womToolsJarLocation} validate "${uri.fsPath}"`);
-        outputChannel.append(out);
+        outputChannel.replace(out);
     } catch (error) {
         handleCommandError(error);
     }
@@ -84,7 +84,7 @@ async function upgradeCommand(uri: vscode.Uri) {
     try {
         let out = await executeChildProcess(`java -jar ${wdlToolsJarLocation} upgrade --nofollow-imports "${uri.fsPath}"`);
 		out = formatBashCommand(out);
-		
+
         const edit = new vscode.WorkspaceEdit();
         edit.replace(uri, getWholeDocumentRange(uri), out);
         vscode.workspace.applyEdit(edit);
@@ -155,7 +155,7 @@ function handleCommandError(error: unknown) {
 
 	if (error instanceof Error) {
 		outputChannel.show();
-		outputChannel.append(error.message);
+		outputChannel.replace(error.message);
 	}
 }
 
