@@ -82,7 +82,9 @@ async function womtoolCheckCommand(uri: vscode.Uri) {
 async function upgradeCommand(uri: vscode.Uri) {
     const wdlToolsJarLocation = vscode.workspace.getConfiguration(WDL_TOOLS_CONFIG).get('location');
     try {
-        const out = await executeChildProcess(`java -jar ${wdlToolsJarLocation} upgrade --nofollow-imports "${uri.fsPath}"`);
+        let out = await executeChildProcess(`java -jar ${wdlToolsJarLocation} upgrade --nofollow-imports "${uri.fsPath}"`);
+		out = formatBashCommand(out);
+		
         const edit = new vscode.WorkspaceEdit();
         edit.replace(uri, getWholeDocumentRange(uri), out);
         vscode.workspace.applyEdit(edit);
