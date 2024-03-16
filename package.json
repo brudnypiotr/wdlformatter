@@ -32,18 +32,19 @@
     "commands": [
       {
         "command": "WDL.formatter.upgrade",
-        "title": "wdlFormatter: Upgrade WDL file from Draft-2 to 1.0 version",
-        "shortTitle": "wdlFormatter: Upgrade"
+        "title": "wdlFormatter: Upgrade WDL file from Draft-2 to 1.0 version"
       },
       {
         "command": "WDL.formatter.fix.ruby",
-        "title": "wdlFormatter: Fix WDL Draft-2 file using Ruby fixer, making it compatible with wdlTools",
-        "shortTitle": "wdlFormatter: Fix"
+        "title": "wdlFormatter: Fix WDL Draft-2 file using Ruby fixer, making it compatible with wdlTools"
       },
       {
         "command": "WDL.formatter.check",
-        "title": "wdlFormatter: type-check a WDL file",
-        "shortTitle": "wdlFormatter: Check"
+        "title": "wdlFormatter: type-check a WDL file with wdlTools"
+      },
+      {
+        "command": "WDL.formatter.womtoolcheck",
+        "title": "wdlFormatter: type-check a WDL file with womtool"
       }
     ],
     "configuration": {
@@ -60,6 +61,13 @@
           "patternErrorMessage": "You must specify executable jar file.",
           "default": "wdlTools.jar",
           "description": "Specifies location of wdlTools.jar executable file."
+        },
+        "WDL.formatter.womTools.location": {
+          "type": "string",
+          "pattern": ".*\\.jar$",
+          "patternErrorMessage": "You must specify executable jar file.",
+          "default": "womtool.jar",
+          "description": "Specifies location of womtools.jar executable file."
         },
         "WDL.formatter.fix.rubyRb.location": {
           "type": "string",

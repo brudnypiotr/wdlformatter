@@ -2,8 +2,11 @@ import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 
 const WDL_TOOLS_CONFIG = 'WDL.formatter.wdlTools';
+const WOM_TOOLS_CONFIG = 'WDL.formatter.womTools';
 const FIXER_RB_CONFIG = 'WDL.formatter.fix.rubyRb';
 const WDL_LANGUAGE_ID = 'wdl';
+
+const outputChannel = vscode.window.createOutputChannel("WDL Formatter");
 
 export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('WDL.formatter.fix.ruby', () => {
@@ -12,6 +15,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand('WDL.formatter.check', () => {
         executeWdlCommand(checkCommand);
+    });
+
+    vscode.commands.registerCommand('WDL.formatter.womtoolcheck', () => {
+        executeWdlCommand(womtoolCheckCommand);
     });
 
     vscode.commands.registerCommand('WDL.formatter.upgrade', () => {
@@ -50,11 +57,22 @@ async function fixRubyCommand(uri: vscode.Uri) {
 
 async function checkCommand(uri: vscode.Uri) {
     const wdlToolsJarLocation = vscode.workspace.getConfiguration(WDL_TOOLS_CONFIG).get('location');
-    const outputChannel = vscode.window.createOutputChannel("WDL Formatter");
+	outputChannel.show();
+	
+    try {
+		const out = await executeChildProcess(`java -jar ${wdlToolsJarLocation} check "${uri.fsPath}"`);
+        outputChannel.append(out);
+    } catch (error) {
+        handleCommandError(error);
+    }
+}
+
+async function womtoolCheckCommand(uri: vscode.Uri) {
+    const womToolsJarLocation = vscode.workspace.getConfiguration(WOM_TOOLS_CONFIG).get('location');
     outputChannel.show();
 
     try {
-        const out = await executeChildProcess(`java -jar ${wdlToolsJarLocation} check "${uri.fsPath}"`);
+        const out = await executeChildProcess(`java -jar ${womToolsJarLocation} validate "${uri.fsPath}"`);
         outputChannel.append(out);
     } catch (error) {
         handleCommandError(error);
@@ -132,6 +150,11 @@ function getWholeDocumentRange(uri: vscode.Uri): vscode.Range {
 function handleCommandError(error: unknown) {
     const message = getErrorMessage(error);
     vscode.window.showErrorMessage(message);
+
+	if (error instanceof Error) {
+		outputChannel.show();
+		outputChannel.append(error.message);
+	}
 }
 
 function getErrorMessage(error: unknown): string {
